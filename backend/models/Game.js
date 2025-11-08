@@ -44,5 +44,8 @@ const gameSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+gameSchema.methods.describe= function (){
+  console.log (`${this.titulo} es un juego de ${this.genero} disponible en ${this.plataforma}.`);
+}
 
 module.exports = mongoose.model('Game', gameSchema);

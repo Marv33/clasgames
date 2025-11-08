@@ -9,18 +9,18 @@ mongoose.connect(uri)
 .then(() => console.log('Conectado a MongoDB'))
 .catch(err => console.error('Error al conectar a MongoDB:', err));
 
-const Kitten = require('./models/Kitten');
+const Juegos = require('./models/Juegos');
 
 app.get('/api/juegos', async(req, res) => {
 
     //Leemos todos los gatos que hay en la base de datos
-  const kittens = await Kitten.find();
-  res.json(kittens);
+  const juegos = await Juegos.find();
+  res.json(juegos);
 })
 app.get('/api/juegos/:id', async(req, res) => {
    const juegoId = req.params.id;
-  const kitten = await Kitten.findById(juegoId);
-  res.json(kitten);
+  const juego = await Juegos.findById(juegoId);
+  res.json(juego);
 })
 app.post('/api/juegos/:id', (req, res) => {
   const idJuego = req.params.id;
