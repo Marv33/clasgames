@@ -15,8 +15,8 @@ mongoose.connect('mongodb+srv://mariana12345vg_db_user:4CzBQommwT8wc7uB@libreria
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log(' Conectado a MongoDB Atlas'))
-.catch(err => console.error(' Error al conectar con MongoDB:', err));
+  .then(() => console.log(' Conectado a MongoDB Atlas'))
+  .catch(err => console.error(' Error al conectar con MongoDB:', err));
 
 // Esquema y modelo del juego
 const gameSchema = new mongoose.Schema({
@@ -74,7 +74,7 @@ app.get('/', (req, res) => {
 });
 
 // Ruta para obtener todos los juegos
-app.get('/games', async (req, res) => {
+app.get('/api/juegos', async (req, res) => {
   try {
     const games = await Game.find();
     res.json(games);
@@ -84,7 +84,7 @@ app.get('/games', async (req, res) => {
 });
 app.get('/api/juegos/:id', async (req, res) => {
   try {
-    const juego = await Juego.findById(req.params.id);
+    const juego = await Game.findById(req.params.id);
     if (!juego) return res.status(404).json({ error: 'Juego no encontrado' });
     res.json(juego);
   } catch (error) {
@@ -93,7 +93,7 @@ app.get('/api/juegos/:id', async (req, res) => {
 });
 
 // Ruta para agregar un juego
-app.post('/games', async (req, res) => {
+app.post('/api/juegos', async (req, res) => {
   const { name, description, genre } = req.body;
   try {
     const newGame = new Game({ name, description, genre });
@@ -103,7 +103,7 @@ app.post('/games', async (req, res) => {
     res.status(500).json({ error: 'Error al guardar el juego' });
   }
 });
-app.put('/games/:id', async (req, res) => {
+app.put('/api/juegos/:id', async (req, res) => {
   const { id } = req.params;
   const { name, description, genre } = req.body;
   try {
@@ -117,7 +117,7 @@ app.put('/games/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al actualizar el juego' });
   }
 });
-app.delete('/games/:id', async (req, res) => {
+app.delete('/api/juegos/:id', async (req, res) => {
   const { id } = req.params;
   try {
     await Game.findByIdAndDelete(id);
@@ -128,7 +128,7 @@ app.delete('/games/:id', async (req, res) => {
 });
 
 // Ruta para obtener todas las reseñas
-app.get('/reviews', async (req, res) => {
+app.get('/api/reseñas', async (req, res) => {
   try {
     const reviews = await Review.find().populate('juegoId');
     res.json(reviews);
@@ -136,9 +136,9 @@ app.get('/reviews', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener reseñas' });
   }
 });
-app.get('/api/reseñas/juego/:juegoId', async (req, res) => {
+app.get('/api/reviews/juego/:juegoId', async (req, res) => {
   try {
-    const reseñas = await Reseña.find({ juegoId: req.params.juegoId });
+    const reseñas = await Review.find({ juegoId: req.params.juegoId });
     res.json(reseñas);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener las reseñas del juego' });
@@ -146,47 +146,67 @@ app.get('/api/reseñas/juego/:juegoId', async (req, res) => {
 });
 
 // Ruta para agregar una reseña
-app.post('/reviews', async (req, res) => {
-  const { juegoId, puntuacion, textoReseña, horasJugadas, dificultad, recomendaria } = req.body;
+// 📋 RUTAS PARA RESEÑAS
+
+// Obtener todas las reseñas
+app.get('/api/reviews', async (req, res) => {
   try {
-    const nuevaReseña = new Review({
-      juegoId,
-      puntuacion,
-      textoReseña,
-      horasJugadas,
-      dificultad,
-      recomendaria
-    });
-    await nuevaReseña.save();
-    res.status(201).json(nuevaReseña);
+    const reviews = await Review.find().populate('juegoId');
+    res.json(reviews);
   } catch (error) {
+    res.status(500).json({ error: 'Error al obtener reseñas' });
+  }
+});
+
+// Obtener reseñas por juego
+app.get('/api/reviews/juego/:juegoId', async (req, res) => {
+  try {
+    const reviews = await Review.find({ juegoId: req.params.juegoId });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener las reseñas del juego' });
+  }
+});
+
+// Agregar una reseña
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const nuevaReview = new Review(req.body);
+    await nuevaReview.save();
+    res.status(201).json(nuevaReview);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Error al guardar la reseña' });
   }
 });
 
-app.put('/api/reseñas/:id', async (req, res) => {
+// Actualizar una reseña
+app.put('/api/reviews/:id', async (req, res) => {
   const { puntuacion, textoReseña, horasJugadas, dificultad, recomendaria } = req.body;
   try {
-    const reseñaActualizada = await Reseña.findByIdAndUpdate(
+    const reviewActualizada = await Review.findByIdAndUpdate(
       req.params.id,
       { puntuacion, textoReseña, horasJugadas, dificultad, recomendaria, fechaActualizacion: Date.now() },
       { new: true }
     );
-    if (!reseñaActualizada) return res.status(404).json({ error: 'Reseña no encontrada' });
-    res.json(reseñaActualizada);
+    if (!reviewActualizada) return res.status(404).json({ error: 'Reseña no encontrada' });
+    res.json(reviewActualizada);
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar la reseña' });
   }
 });
-app.delete('/api/reseñas/:id', async (req, res) => {
+
+// Eliminar una reseña
+app.delete('/api/reviews/:id', async (req, res) => {
   try {
-    const reseñaEliminada = await Reseña.findByIdAndDelete(req.params.id);
-    if (!reseñaEliminada) return res.status(404).json({ error: 'Reseña no encontrada' });
+    const reviewEliminada = await Review.findByIdAndDelete(req.params.id);
+    if (!reviewEliminada) return res.status(404).json({ error: 'Reseña no encontrada' });
     res.json({ message: 'Reseña eliminada correctamente' });
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar la reseña' });
   }
 });
+
 
 
 // Puerto del backend
